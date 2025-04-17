@@ -66,9 +66,9 @@ fn read_file(file: &String, cli: &Cli) {
     }
 
     if cli.number_non_blank {
-        contents = number_non_blank(contents);
+        contents = number_lines(contents, true);
     } else if cli.number_all {
-        contents = number_all(contents);
+        contents = number_lines(contents, false);
     }
 
     println!("{}", contents);
@@ -91,9 +91,9 @@ fn read_stdin(cli: &Cli) {
                 last_line_was_empty = is_empty;
 
                 if cli.number_non_blank && !is_empty {
-                    format_line_number(&line, line_num);
+                    println!("{:6} {}", line_num, line);
                 } else if cli.number_all {
-                    format_line_number(&line, line_num);
+                    println!("{:6} {}", line_num, line);
                 } else {
                     println!("{}", line);
                 }
@@ -120,30 +120,15 @@ fn squeeze_blank_lines(contents: String) -> String {
     squeezed_contents
 }
 
-fn number_non_blank(contents: String) -> String {
+fn number_lines(contents: String, skip_empty: bool) -> String {
     let mut new_content = String::new();
     let mut line_num = 1;
     for line in contents.lines() {
-        if line.is_empty() {
+        if skip_empty && line.is_empty() {
             continue;
         }
-
-        new_content.push_str(format!("{:6} {}\n", line_num, line).as_str());
+        new_content.push_str(&format!("{:6} {}\n", line_num, line));
         line_num += 1;
     }
     new_content
-}
-
-fn number_all(contents: String) -> String {
-    let mut new_content = String::new();
-    let mut line_num = 1;
-    for line in contents.lines() {
-        new_content.push_str(format!("{:6} {}\n", line_num, line).as_str());
-        line_num += 1;
-    }
-    new_content
-}
-
-fn format_line_number(line: &str, line_num: i32) -> String {
-    format!("{:6} {}", line_num, line)
 }
