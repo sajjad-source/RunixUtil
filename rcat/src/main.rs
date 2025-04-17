@@ -4,14 +4,6 @@ use std::io;
 use std::io::BufRead;
 use std::io::Read;
 
-/* TODO:
-    1. Need to implement proper STDIN handling. Currently it doesn't work like the UNIX cat
-    2. Need to add support for multiple files. Switch file: Option<String> -> Vec<String>
-    3. Need to refactor my read_file(file: String) method to, instead of reading the entire file into a String::new() buffer, to
-       instead loop line by line, and call the proper transformations on it (squueze, number, etc.) and then build up the buffer, to then return
-       This will allow the helper functions to work for both STDIN and files, and allow chaining, i.e, rcat file1.txt - file2.txt
-*/
-
 #[derive(Parser, Debug)]
 #[command(
     name = "rcat",
@@ -34,16 +26,38 @@ struct Cli {
         help = "Squeeze multiple adjacent empty lines, causing the output to be single spaced."
     )]
     squeeze: bool,
-    file: Option<String>,
+    files: Vec<String>,
 }
 
 fn main() {
     let cli = Cli::parse();
-    let mut contents = match cli.file {
-        Some(file) => read_file(file),
-        None => {
-            read_stdin(cli);
-            return;
+
+    if cli.files.len() == 0 {
+        read_stdin(&cli);
+    }
+
+    for file in &cli.files {
+        if file == "-" {
+            read_stdin(&cli);
+        } else {
+            read_file(file, &cli);
+        }
+    }
+}
+
+fn read_file(file: &String, cli: &Cli) {
+    let mut file = match File::open(file) {
+        Ok(file) => file,
+        Err(e) => {
+            panic!("Error: {}", e)
+        }
+    };
+
+    let mut contents = String::new();
+    let mut contents = match file.read_to_string(&mut contents) {
+        Ok(_) => contents,
+        Err(e) => {
+            panic!("Error: {}", e)
         }
     };
 
@@ -60,38 +74,30 @@ fn main() {
     println!("{}", contents);
 }
 
-fn read_file(file: String) -> String {
-    let mut file = match File::open(file) {
-        Ok(file) => file,
-        Err(e) => {
-            panic!("Error: {}", e)
-        }
-    };
-
-    let mut contents = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => contents,
-        Err(e) => {
-            panic!("Error: {}", e)
-        }
-    }
-}
-
-fn read_stdin(cli: Cli) {
+fn read_stdin(cli: &Cli) {
     let stdin = io::stdin();
+    let mut last_line_was_empty = false;
+    let mut line_num = 1;
+
     for line in stdin.lock().lines() {
         match line {
-            Ok(mut line) => {
-                if cli.squeeze {
-                    line = squeeze_blank_lines(line);
+            Ok(line) => {
+                let is_empty = line.trim().is_empty();
+
+                if cli.squeeze && is_empty && last_line_was_empty {
+                    continue;
                 }
 
-                if cli.number_non_blank {
-                    line = number_non_blank(line);
+                last_line_was_empty = is_empty;
+
+                if cli.number_non_blank && !is_empty {
+                    format_line_number(&line, line_num);
                 } else if cli.number_all {
-                    line = number_all(line);
+                    format_line_number(&line, line_num);
+                } else {
+                    println!("{}", line);
                 }
-                println!("{}", line);
+                line_num += 1;
             }
             Err(e) => {
                 eprintln!("Error reading line: {}", e);
@@ -136,4 +142,8 @@ fn number_all(contents: String) -> String {
         line_num += 1;
     }
     new_content
+}
+
+fn format_line_number(line: &str, line_num: i32) -> String {
+    format!("{:6} {}", line_num, line)
 }
