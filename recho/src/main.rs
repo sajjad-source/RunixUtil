@@ -7,13 +7,14 @@ use clap::Parser;
     help_template = "{about}\n\nUsage: {name} [OPTIONS] <STRING>\n\n{all-args}"
 )]
 struct Cli {
-    #[arg(short = 'n', help = "Optional flag to not output the trailing newline")]
+    #[arg(short = 'n', help = "Do not output the trailing newline")]
     no_newline: bool,
     string: String,
 }
 
 fn main() {
     let cli = Cli::parse();
+
     if cli.no_newline == true {
         print!("{}", cli.string);
     } else {
