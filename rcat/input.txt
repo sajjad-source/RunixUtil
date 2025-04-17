@@ -1,0 +1,6 @@
+Alice went to the market to buy some fresh vegetables.
+42 is the answer to life, the universe, and everything.
+Rust is a systems programming language focused on safety and speed.
+
+
+The quick brown fox jumps over the lazy dog.
