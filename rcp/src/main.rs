@@ -63,12 +63,21 @@ fn handle_interactive(target_file: &str) -> bool {
     io::stdin().read_line(&mut buffer).unwrap();
     buffer.trim().to_lowercase().starts_with('y')
 }
+
+fn handle_verbose(source_file: &str, target_file: &str) {
+    println!("{} -> {}", source_file, target_file);
+}
+
 fn main() {
     let cli = Cli::parse();
     let path = Path::new(&cli.target_file);
 
     if !should_overwrite(path, &cli) {
         return;
+    }
+
+    if cli.verbose {
+        handle_verbose(&cli.source_file, &cli.target_file);
     }
 
     copy(cli.source_file, cli.target_file).expect("Error copying from source file.");
