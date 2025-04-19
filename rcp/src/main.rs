@@ -10,7 +10,8 @@ use std::path::Path;
     about = "A simple UNIX cp command",
     long_about = "The rcp utility copies the contents of the source_file to the target_file. 
      If rcp detects an attempt to copy a file to itself, the copy will fail.",
-    help_template = "{about}\n\nUsage: {name} [OPTIONS] [source_file target_file]\n\n{all-args}"
+    help_template = "{about}\n\n{usage-heading}\n    {usage}\n\n{all-args}{after-help}",
+    after_help = "\nEXAMPLES:\n    rcp file1 file2        # Copy file1 to file2\n    rcp -i file1 file2     # Prompt before overwriting\n    rcp -n file1 file2     # Do not overwrite existing file\n    rcp -v file1 file2     # Show files as they are copied"
 )]
 struct Cli {
     #[arg(
