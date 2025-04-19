@@ -11,7 +11,8 @@ use std::io::Read;
     long_about = "The rcat utility reads files sequentially, writing them to the standard output. The file operands 
      are processed in command-line order.  If file is a single dash (-) or absent, rcat reads from 
      the standard input.",
-    help_template = "{about}\n\nUsage: {name} [OPTIONS] [file ...]\n\n{all-args}"
+    help_template = "{about}\n\n{usage-heading}\n    {usage}\n\n{all-args}{after-help}",
+    after_help = "\nEXAMPLES:\n    rcat file.txt         # Display contents of file.txt\n    rcat -n file.txt      # Number all lines\n    rcat -b file.txt      # Number non-blank lines\n    rcat -s file.txt      # Squeeze multiple empty lines\n    cat file.txt | rcat   # Read from stdin"
 )]
 struct Cli {
     #[arg(
