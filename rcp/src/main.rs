@@ -69,17 +69,34 @@ fn handle_verbose(source_file: &str, target_file: &str) {
     println!("{} -> {}", source_file, target_file);
 }
 
-fn main() {
+fn main() -> std::io::Result<()> {
     let cli = Cli::parse();
     let path = Path::new(&cli.target_file);
 
+    if cli.source_file == cli.target_file {
+        eprintln!(
+            "rcp: '{}' and '{}' are the same file",
+            cli.source_file, cli.target_file
+        );
+        std::process::exit(1);
+    }
+
     if !should_overwrite(path, &cli) {
-        return;
+        return Ok(());
     }
 
     if cli.verbose {
         handle_verbose(&cli.source_file, &cli.target_file);
     }
 
-    copy(cli.source_file, cli.target_file).expect("Error copying from source file.");
+    match copy(&cli.source_file, &cli.target_file) {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            eprintln!(
+                "rcp: cannot copy '{}' to '{}': {}",
+                cli.source_file, cli.target_file, e
+            );
+            std::process::exit(1);
+        }
+    }
 }
