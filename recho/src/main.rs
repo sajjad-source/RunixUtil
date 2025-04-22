@@ -1,4 +1,5 @@
 use clap::Parser;
+use std::io::{self, Write};
 
 #[derive(Parser, Debug)]
 #[command(
@@ -17,9 +18,14 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
 
-    if cli.no_newline == true {
-        print!("{}", cli.string);
+    let result = if cli.no_newline {
+        io::stdout().write_all(cli.string.as_bytes())
     } else {
-        println!("{}", cli.string);
+        io::stdout().write_all(format!("{}\n", cli.string).as_bytes())
+    };
+
+    if let Err(e) = result {
+        eprintln!("recho: write error: {}", e);
+        std::process::exit(1);
     }
 }
