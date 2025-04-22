@@ -22,33 +22,48 @@ struct Cli {
     files: Vec<String>,
 }
 
-fn read_stdin(cli: &Cli) {
+fn read_stdin(cli: &Cli) -> io::Result<()> {
     let stdin = io::stdin();
     let handle = stdin.lock();
 
     for line in handle.lines().take(cli.count) {
-        match line {
-            Ok(line) => println!("{}", line),
-            Err(e) => eprintln!("Error reading line: {}", e),
-        }
+        let line = line?;
+        println!("{}", line);
     }
+    Ok(())
 }
 
-fn read_file(file: &str, cli: &Cli) {
-    read_to_string(file)
-        .unwrap()
-        .lines()
-        .take(cli.count)
-        .for_each(|line| println!("{}", line));
+fn read_file(file: &str, cli: &Cli) -> io::Result<()> {
+    let contents = read_to_string(file)?;
+
+    if cli.files.len() > 1 {
+        println!("==> {} <==", file);
+    }
+
+    for line in contents.lines().take(cli.count) {
+        println!("{}", line);
+    }
+
+    if cli.files.len() > 1 {
+        println!();
+    }
+
+    Ok(())
 }
 
-fn main() {
+fn main() -> io::Result<()> {
     let cli = Cli::parse();
 
-    if cli.files.is_empty() {
-        read_stdin(&cli);
+    if cli.files.is_empty() && read_stdin(&cli).is_err() {
+        std::process::exit(1);
     }
+
     for file in &cli.files {
-        read_file(&file, &cli);
+        if let Err(e) = read_file(file, &cli) {
+            eprintln!("rhead: cannot open '{}': {}", file, e);
+            std::process::exit(1);
+        }
     }
+
+    Ok(())
 }
