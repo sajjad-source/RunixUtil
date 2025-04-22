@@ -65,13 +65,20 @@ fn handle_interactive(target_file: &str) -> bool {
 
 fn main() -> std::io::Result<()> {
     let cli = Cli::parse();
-
     let path = Path::new(&cli.target);
 
     if !should_overwrite(path, &cli) {
         return Ok(());
     }
 
-    fs::rename(cli.source, cli.target)?;
-    Ok(())
+    match fs::rename(&cli.source, &cli.target) {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            eprintln!(
+                "rmv: cannot move '{}' to '{}': {}",
+                cli.source, cli.target, e
+            );
+            std::process::exit(1);
+        }
+    }
 }
